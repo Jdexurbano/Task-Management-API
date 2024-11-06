@@ -7,6 +7,5 @@ urlpatterns = [
     #authentication
     path('token/',TokenObtainPairView.as_view(),name = 'token_obtain_pair'),
     path('token/refresh/',TokenRefreshView.as_view(),name = 'token_refresh'),
-
-    path('',views.get_route,name='sample'),
+    path('register/',views.UserRegistrationView.as_view(),name='user_register'),
 ]
