@@ -24,9 +24,20 @@ class UserRegistrationView(APIView):
 class TaskListView(APIView):
     permission_classes = [IsAuthenticated]
 
-
+    @swagger_auto_schema(responses = {200:TaskSerializer()})
     def get(self,request):
         user = User.objects.get(username = request.user)
         tasks = user.tasks.all()
         serializer = TaskSerializer(tasks,many = True)
         return Response(serializer.data,status = status.HTTP_200_OK)
+    
+    @swagger_auto_schema(request_body = TaskSerializer,responses = {201:TaskSerializer()})
+    def post(self,request):
+        serializer = TaskSerializer(data = request.data)
+        if serializer.is_valid():
+            #pass the user
+            serializer.save(user = request.user)
+            return Response(serializer.data,status = status.HTTP_201_CREATED)
+        return Response({
+            "errors":serializer.errors
+        },status = status.HTTP_400_BAD_REQUEST)
