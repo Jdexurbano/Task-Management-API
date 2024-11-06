@@ -6,8 +6,9 @@ from rest_framework.permissions import IsAuthenticated
 from core.models import Task
 from django.contrib.auth.models import User
 from rest_framework.exceptions import NotFound
-from .serializers import UserRegistrationSerializer, TaskSerializer
+from .serializers import UserRegistrationSerializer, TaskSerializer, UserChangePasswordSerializer, UserSerializer
 
+#user registartion view
 class UserRegistrationView(APIView):
 
     @swagger_auto_schema(request_body = UserRegistrationSerializer)
@@ -22,6 +23,45 @@ class UserRegistrationView(APIView):
         }, status = status.HTTP_400_BAD_REQUEST)
 
 
+#USER views
+class UserChangePasswordView(APIView):
+    
+    @swagger_auto_schema(request_body = UserChangePasswordSerializer)
+    def patch(self,request):
+        serializer = UserChangePasswordSerializer(data = request.data)
+        if serializer.is_valid():
+            serializer.save(user = request.user)
+            return Response({"message":"password change succesfully"},status = status.HTTP_201_CREATED)
+        return Response({
+            "message":"validation failed",
+            "errors":serializer.errors,
+        },status = status.HTTP_400_BAD_REQUEST)
+
+
+class UserEditInfoView(APIView):
+    
+    @swagger_auto_schema(request_body = UserSerializer, responses = {201:UserSerializer()})
+    def patch(self,request):
+        user = User.objects.get(username = request.user)
+        serializer = UserSerializer(user, data = request.data)
+        if serializer.is_valid():
+            #pass the user
+            serializer.save(user = request.user)
+            return Response({"message":"account successfully edit","data":serializer.data},status = status.HTTP_201_CREATED)
+        return Response({"error":serializer.errors},status = status.HTTP_400_BAD_REQUEST)
+
+
+class UserDetailView(APIView):
+
+    @swagger_auto_schema(responses = {200:UserSerializer()})
+    def get(self,request):
+        user = User.objects.get(username = request.user)
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status = status.HTTP_200_OK)
+
+
+
+#TASK views
 class TaskListView(APIView):
     permission_classes = [IsAuthenticated]
 
